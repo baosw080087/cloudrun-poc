@@ -1,0 +1,12 @@
+name: my-test-lb
+# 1. 全局默认服务切到绿色
+defaultService: https://www.googleapis.com/compute/v1/projects/project-95db9422-29d0-4c5e-b9f/global/backendServices/backend-green
+hostRules:
+- hosts:
+  - 'my-test.jhc-dts.com'
+  pathMatcher: path-matcher-1
+pathMatchers:
+- name: path-matcher-1
+  # 2. 域名下的默认服务切到绿色
+  defaultService: https://www.googleapis.com/compute/v1/projects/project-95db9422-29d0-4c5e-b9f/global/backendServices/backend-green
+  # 3. 移除 routeRules，让所有流量都走上面的 defaultService

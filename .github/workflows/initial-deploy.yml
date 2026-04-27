@@ -1,0 +1,45 @@
+name: Initial Build and Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: asia-northeast1 # 也可以根据需求更改
+  SERVICE_NAME: my-cloudrun-service
+  IMAGE_NAME: cloudrun-app
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Authorize Docker
+        run: gcloud auth configure-docker asia-northeast1-docker.pkg.dev
+
+      - name: Build and Push Image
+        run: |
+          IMAGE_TAG="asia-northeast1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-lib/$IMAGE_NAME:${{ github.sha }}"
+          docker build -t $IMAGE_TAG .
+          docker push $IMAGE_TAG
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.REGION }}
+          image: asia-northeast1-docker.pkg.dev/${{ env.PROJECT_ID }}/cloud-run-source-lib/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          # 初始部署时可以允许全部流量，后续 CI/CD 走蓝绿逻辑
+          flags: --allow-unauthenticated

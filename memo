@@ -1,0 +1,83 @@
+gcloud builds submit --tag asia-northeast1-docker.pkg.dev/project-95db9422-29d0-4c5e-b9f/ma-apps/my-go-app:v1
+
+  gcloud run deploy my-go-app \
+  --source . \
+  --image asia-northeast1-docker.pkg.dev/project-95db9422-29d0-4c5e-b9f/my-apps/my-go-app \
+  --region asia-northeast1 \
+  --allow-unauthenticated
+
+
+
+
+#-------------------------------------------------------------------------------------------------
+
+
+#1. 部署蓝色版本 (Blue Service)
+#这是你当前的稳定版本。
+
+gcloud run deploy my-go-app-blue \
+  --source . \
+  --image asia-northeast1-docker.pkg.dev/project-95db9422-29d0-4c5e-b9f/my-apps/my-go-app:blue \
+  --region asia-northeast1 \
+  --allow-unauthenticated
+
+
+#2. 部署绿色版本 (Green Service)
+#这是你的新版本（包含 aaaaaaabbbbbbbbb 的改动）。
+
+gcloud run deploy my-go-app-green \
+  --source . \
+  --image asia-northeast1-docker.pkg.dev/project-95db9422-29d0-4c5e-b9f/my-apps/my-go-app:green \
+  --region asia-northeast1 \
+  --allow-unauthenticated
+
+#3. 创建对应的 NEG (网络端点组)
+#LB 需要通过 NEG 才能找到这两个独立的服务：
+
+
+# 为蓝色服务创建 NEG
+gcloud compute network-endpoint-groups create neg-blue \
+    --region=asia-northeast1 \
+    --network-endpoint-type=SERVERLESS \
+    --cloud-run-service=my-go-app-blue
+
+# 为绿色服务创建 NEG
+gcloud compute network-endpoint-groups create neg-green \
+    --region=asia-northeast1 \
+    --network-endpoint-type=SERVERLESS \
+    --cloud-run-service=my-go-app-green
+
+# 4. 关联到后端服务 (Backend Services)
+# 确保你已经按照上一步的操作，使用了 EXTERNAL_MANAGED 模式创建了后端，现在把 NEG 挂载上去：
+
+# 关联蓝色后端
+gcloud compute backend-services add-backend backend-blue \
+    --global \
+    --network-endpoint-group=neg-blue \
+    --network-endpoint-group-region=asia-northeast1
+
+# 关联绿色后端
+gcloud compute backend-services add-backend backend-green \
+    --global \
+    --network-endpoint-group=neg-green \
+    --network-endpoint-group-region=asia-northeast1
+
+# 导入 URL Map
+gcloud compute url-maps import my-test-lb \
+    --source src/url-map-config.yaml \
+    --global
+
+
+
+
+curl https://my-test.jhc-dts.com
+curl -H "x-deploy-env: green" https://my-test.jhc-dts.com
+
+
+
+
+
+# 测试完成后准备正式发布
+gcloud compute url-maps import my-test-lb \
+    --source src/url-map-config-release.yaml \
+    --global

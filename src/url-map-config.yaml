@@ -1,0 +1,16 @@
+name: my-test-lb
+defaultService: https://www.googleapis.com/compute/v1/projects/project-95db9422-29d0-4c5e-b9f/global/backendServices/backend-blue
+hostRules:
+- hosts:
+  - 'my-test.jhc-dts.com'
+  pathMatcher: path-matcher-1
+pathMatchers:
+- name: path-matcher-1
+  defaultService: https://www.googleapis.com/compute/v1/projects/project-95db9422-29d0-4c5e-b9f/global/backendServices/backend-blue
+  routeRules:
+    - priority: 1
+      matchRules:
+        - headerMatches:
+            - headerName: "x-deploy-env"
+              exactMatch: "green"
+      service: https://www.googleapis.com/compute/v1/projects/project-95db9422-29d0-4c5e-b9f/global/backendServices/backend-green
