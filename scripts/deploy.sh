@@ -3,7 +3,7 @@ set -e
 
 # 参数处理：默认为 deploy，支持 promote 和 abort
 ACTION=${1:-"deploy"}
-SERVICE_NAME="my-go-app"
+SERVICE_NAME="my-go-app-blue"
 REGION="asia-northeast1"
 
 echo "🔍 正在检查服务 $SERVICE_NAME 在 $REGION 的状态..."
