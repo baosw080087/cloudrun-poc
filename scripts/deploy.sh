@@ -13,7 +13,7 @@ if [ "$ACTION" == "deploy" ]; then
         --region $REGION \
         --no-traffic \
         --tag preview \
-        --set-labels=stage=preview
+        --update-labels=stage=preview
 
     # 获取预览 URL 供测试人员使用
     PREVIEW_URL=$(gcloud run services describe $SERVICE_NAME --region $REGION --format='value(status.traffic[1].url)')
