@@ -24,7 +24,7 @@ jobs:
         uses: 'google-github-actions/auth@v1'
         with:
           # 获取这个值：projects/项目编号/locations/global/workloadIdentityPools/github-pool/providers/github-provider
-          workload_identity_provider: 'projects/project-95db9422-29d0-4c5e-b9f/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          workload_identity_provider: 'projects/502279888436/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
           service_account: 'github-actions-deployer@project-95db9422-29d0-4c5e-b9f.iam.gserviceaccount.com'
 
       - name: 'Set up Cloud SDK'
